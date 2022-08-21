@@ -10,4 +10,8 @@ import com.modals.User;
 public interface UserDao {
 	
 	public ResultResponse createUser(User user, List<Role> roles);
+	
+	public User getUserByUsername(String username);
+	
+	public User deleteUserById(int id);
 }

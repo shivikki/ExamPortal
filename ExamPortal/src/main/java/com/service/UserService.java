@@ -11,4 +11,8 @@ public interface UserService {
 
 	//create user - 1 user can have multiple roles
 	public ResultResponse createUser(User user,List<Role> roleList);
+	
+	public User getUserByUsername(String username);
+	
+	public User deleteUserById(int id);
 }

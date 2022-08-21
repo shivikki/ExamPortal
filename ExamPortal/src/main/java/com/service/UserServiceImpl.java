@@ -19,8 +19,17 @@ public class UserServiceImpl implements UserService{
 	
 	@Override
 	public ResultResponse createUser(User user, List<Role> roles) {
-		// TODO Auto-generated method stub
 		return userDao.createUser(user,roles);
+	}
+
+	@Override
+	public User getUserByUsername(String username) {
+		return userDao.getUserByUsername(username);
+	}
+
+	@Override
+	public User deleteUserById(int id) {
+		return userDao.deleteUserById(id) ;
 	}
 
 }

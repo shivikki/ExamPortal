@@ -17,4 +17,9 @@ public class QueryConstant {
 	
 	public static final String FIND_USER_BY_EMAIL="select * from exam.user where email=?;";
 	
+	public static final String FIND_USER_BY_USERNAME="select * from exam.user where username=?;";
+	
+	public static final String DELETE_USER_BY_ID="DELETE FROM exam.user\r\n"
+			+ "WHERE id=?;";
+	
 }

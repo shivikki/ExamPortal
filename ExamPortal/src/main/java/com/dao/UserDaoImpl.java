@@ -35,13 +35,13 @@ public class UserDaoImpl implements UserDao {
 		boolean update = true;
 		boolean userExist = false;
 		boolean roleExist = false;
-		User getUser =findUserBEmail(user, response);
+		User getUser = findUserBEmail(user, response);
 
 		// calling func to check user already exists or not using email( as email is
 		// unique)
-		System.out.println("getUser obj from val"+getUser);
+		System.out.println("getUser obj from val" + getUser);
 		try {
-			if (getUser == null) {
+			if (getUser.getEmail()== null) {
 				int result = 0;
 
 				// create new user if email id does not exist
@@ -73,12 +73,11 @@ public class UserDaoImpl implements UserDao {
 						if (updateUserRole > 0) {
 							System.out.println("USER ROLE UPDATED");
 							response.setValidationFlag(false);
-							response.setValidationStatus("User Created");
+							response.setValidationStatus("User registered successfully !!!");
 
 						}
 					}
-				}
-				else {
+				} else {
 					response.setValidationFlag(true);
 					response.setValidationStatus("User not created");
 				}
@@ -86,7 +85,7 @@ public class UserDaoImpl implements UserDao {
 			} else {
 				response.setValidationFlag(true);
 				response.setValidationStatus("User already registered with this email.");
-				
+
 			}
 		} catch (Exception e) {
 			response.setValidationFlag(true);
@@ -117,16 +116,13 @@ public class UserDaoImpl implements UserDao {
 	public User findUserBEmail(User user, ResultResponse response) {
 		User getUser = new User();
 		try {
-			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_EMAIL,
-					user.getEmail());
-			System.out.println(userData + "userData");
-
-			if (!userData.isEmpty()) {
+			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_EMAIL,user.getEmail());
+			if (userData.size()>0) {
 				for (Map<String, Object> u : userData) {
 					getUser = (User) new MasterMapper().mapUser(u);
 				}
-
 			}
+			
 
 		} catch (Exception e) {
 			LOG.error("Exception in findUserByEmail" + e);
@@ -152,4 +148,53 @@ public class UserDaoImpl implements UserDao {
 		return false;
 	}
 
+	// md to search user by username
+	@Override
+	public User getUserByUsername(String username) {
+		User user = new User();
+		try {
+
+			//find user by username
+			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_USERNAME,
+					username);
+			
+			if (!userData.isEmpty()) {
+				for (Map<String, Object> u : userData) {
+					user = (User) new MasterMapper().mapUser(u);
+					break;
+				}
+
+			}
+
+		} catch (Exception e) {
+			LOG.error("Exception in getUserByUsername" + e);
+		}
+		return user;
+	}
+
+	
+	//delete user by id
+	@Override
+	public User deleteUserById(int id) {
+		User user = new User();
+		try {
+
+			//find user by id
+			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_ID,id);
+			
+			if (!userData.isEmpty()) {
+				int result=jdbcTemplate.update(QueryConstant.DELETE_USER_BY_ID,user.getId());
+				if(result>0) {
+					user.setUsername("User Deleted !!!");
+				}
+			}
+			else {
+				user.setUsername("No user exist with this id.");
+			}
+
+		} catch (Exception e) {
+			LOG.error("Exception in deleteUserById" + e);
+		}
+		return user;
+	}
 }
