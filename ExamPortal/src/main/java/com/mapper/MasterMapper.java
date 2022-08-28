@@ -2,6 +2,7 @@ package com.mapper;
 
 import java.util.Map;
 
+import com.modals.Role;
 import com.modals.User;
 
 public class MasterMapper {
@@ -16,7 +17,14 @@ public class MasterMapper {
 		user.setEmail((String) userMap.get("email"));
 		user.setPhone((String) userMap.get("phone"));
 		user.setEnabled((boolean) userMap.get("enabled"));
-		
+		user.setAuthorities(null);
 		return user;
+	}
+	
+	public Role mapRole(Map<String,Object> roleMap) {
+		Role role=new Role();
+		role.setRoleId((int) roleMap.get("role_id"));
+		role.setRoleName((String) roleMap.get("role_name"));
+		return role;
 	}
 }

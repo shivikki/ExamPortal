@@ -51,4 +51,21 @@ public class LoginController {
 		user = userService.deleteUserById(id);
 		return user;
 	}
+	
+	@PostMapping("/getUserByEmail/{email}")
+	public User getUserByEmail(@PathVariable String email) {
+		User user = new User();
+		user = userService.getUserByEmail(email);
+		return user;
+	}
+	
+	@PostMapping("/getRoleOfUser")
+	public List<Role> getUserRoles(@RequestBody String email) {
+		List<Role> roleList=new ArrayList<>();
+		roleList=userService.getUserRoles(email);
+		return roleList;
+	}
+	
+	
+	
 }

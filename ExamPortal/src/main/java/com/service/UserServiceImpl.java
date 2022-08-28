@@ -32,4 +32,14 @@ public class UserServiceImpl implements UserService{
 		return userDao.deleteUserById(id) ;
 	}
 
+	@Override
+	public User getUserByEmail(String email) {
+		return userDao.getUserByEmail(email);
+	}
+
+	@Override
+	public List<Role> getUserRoles(String email) {
+		return userDao.getUserRoles(email);
+	}
+
 }

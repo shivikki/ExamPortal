@@ -1,5 +1,8 @@
 package com.dao;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,9 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Repository;
 
 import com.mapper.MasterMapper;
+import com.modals.Authority;
 import com.modals.ResultResponse;
 import com.modals.Role;
 import com.modals.User;
@@ -41,7 +46,7 @@ public class UserDaoImpl implements UserDao {
 		// unique)
 		System.out.println("getUser obj from val" + getUser);
 		try {
-			if (getUser.getEmail()== null) {
+			if (getUser.getEmail() == null) {
 				int result = 0;
 
 				// create new user if email id does not exist
@@ -57,7 +62,8 @@ public class UserDaoImpl implements UserDao {
 				if (!userData.isEmpty()) {
 					for (Map<String, Object> u : userData) {
 						getUser = (User) new MasterMapper().mapUser(u);
-						User storeUser = new User(getUser.getId(), null, null, null, null, null, null, roleExist);
+						User storeUser = new User(getUser.getId(), null, null, null, null, null, null, roleExist, null
+		);
 						break;
 					}
 
@@ -116,13 +122,14 @@ public class UserDaoImpl implements UserDao {
 	public User findUserBEmail(User user, ResultResponse response) {
 		User getUser = new User();
 		try {
-			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_EMAIL,user.getEmail());
-			if (userData.size()>0) {
+			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_EMAIL,
+					user.getEmail());
+			if (userData.size() > 0) {
 				for (Map<String, Object> u : userData) {
 					getUser = (User) new MasterMapper().mapUser(u);
 				}
+
 			}
-			
 
 		} catch (Exception e) {
 			LOG.error("Exception in findUserByEmail" + e);
@@ -154,10 +161,10 @@ public class UserDaoImpl implements UserDao {
 		User user = new User();
 		try {
 
-			//find user by username
+			// find user by username
 			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_USERNAME,
 					username);
-			
+
 			if (!userData.isEmpty()) {
 				for (Map<String, Object> u : userData) {
 					user = (User) new MasterMapper().mapUser(u);
@@ -172,23 +179,21 @@ public class UserDaoImpl implements UserDao {
 		return user;
 	}
 
-	
-	//delete user by id
+	// delete user by id
 	@Override
 	public User deleteUserById(int id) {
 		User user = new User();
 		try {
 
-			//find user by id
-			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_ID,id);
-			
+			// find user by id
+			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_ID, id);
+
 			if (!userData.isEmpty()) {
-				int result=jdbcTemplate.update(QueryConstant.DELETE_USER_BY_ID,user.getId());
-				if(result>0) {
+				int result = jdbcTemplate.update(QueryConstant.DELETE_USER_BY_ID, user.getId());
+				if (result > 0) {
 					user.setUsername("User Deleted !!!");
 				}
-			}
-			else {
+			} else {
 				user.setUsername("No user exist with this id.");
 			}
 
@@ -197,4 +202,82 @@ public class UserDaoImpl implements UserDao {
 		}
 		return user;
 	}
+
+	@Override
+	public User getUserByEmail(String email) {
+		User getUser = new User();
+		try {
+			List<Map<String, Object>> userData = jdbcTemplate.queryForList(QueryConstant.FIND_USER_BY_EMAIL, email);
+			if (userData.size() > 0) {
+				for (Map<String, Object> u : userData) {
+					getUser = (User) new MasterMapper().mapUser(u);
+				}
+				System.out.println(getUser + "user fetvhed by email");
+
+				getUser = getAuthorities(getUser.getId(), getUser);
+			}
+
+		} catch (Exception e) {
+			LOG.error("Exception in getUserByEmail" + e);
+		}
+		// if user already exists with email null value returned
+		System.out.println(getUser+"getby email+suthority");
+		return getUser;
+	}
+
+	public User getAuthorities(int id, User user) {
+		List<Role> roleList = new ArrayList<>();
+		Role role = new Role();
+		try {
+
+			// find what roles tagged to user
+			System.out.println("pass id " + id);
+			Map<String, Object> params = new HashMap<>();
+			params.put("id", id);
+			List<Map<String, Object>> roleData = jdbcTemplateNamed.queryForList(QueryConstant.FIND_ROLE_TAGGED_TO_USER,
+					params);
+
+			// List<Map<String, Object>> roleData =
+			// jdbcTemplate.queryForList(QueryConstant.FIND_ROLE_TAGGED_TO_USER, id);
+			if (!roleData.isEmpty()) {
+				for (Map<String, Object> r : roleData) {
+					role = (Role) new MasterMapper().mapRole(r);
+					// add role name to authority
+					roleList.add(role);
+				}
+				user.setAuthorities(roleList);
+			}
+
+		} catch (Exception e) {
+			LOG.error("Exception in getAuthorities() m/d" + e);
+		}
+		System.out.println(user + "user fauth set");
+		return user;
+	}
+
+	@Override
+	public List<Role> getUserRoles(String email) {
+		
+		User user=getUserByEmail(email);
+		List<Role> roleList=new ArrayList<>();
+		Role role=new Role();
+		Map<String, Object> params = new HashMap<>();
+		params.put("id", user.getId());
+		List<Map<String, Object>> roleData = jdbcTemplateNamed.queryForList(QueryConstant.FIND_ROLE_TAGGED_TO_USER,
+				params);
+
+		// List<Map<String, Object>> roleData =
+		// jdbcTemplate.queryForList(QueryConstant.FIND_ROLE_TAGGED_TO_USER, id);
+		if (!roleData.isEmpty()) {
+			for (Map<String, Object> r : roleData) {
+				role = (Role) new MasterMapper().mapRole(r);
+				// add role name to authority
+				roleList.add(role);
+			}	
+		}
+		return roleList;
+	}
+
+
+
 }
